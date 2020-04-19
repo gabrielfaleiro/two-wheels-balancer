@@ -9,12 +9,7 @@
 // Global Variables
 ////////////////////////////////////////////////////////////////////////
 
-// Number of steps per output rotation
-// Change this as per your motor's specification
-const int stepsPerRevolution = 96;
-
-// connect motor to port #2 (M3 and M4)
-AF_Stepper motor2(stepsPerRevolution, 2);
+uint8_t speedMotor2 = 80;
 
 ////////////////////////////////////////////////////////////////////////
 // Tasks Prototypes
@@ -22,6 +17,8 @@ AF_Stepper motor2(stepsPerRevolution, 2);
 
 void TaskBlink( void *pvParameters );
 void TaskStepper2(void *pvParameters);
+
+void TaskControlSpeedMotor2(void *pvParameters);
 
 ////////////////////////////////////////////////////////////////////////
 // Setup
@@ -31,18 +28,13 @@ void TaskStepper2(void *pvParameters);
 void setup() {
   // initialize serial communications at 9600 bps:
   Serial.begin(9600);
-
-  // Stepper motor initialisation
-  motor2.setSpeed(40);  // rpm
-  //motor.onestep(FORWARD, SINGLE);
-  motor2.release(); // release all coils so that it can moove freely
   
   xTaskCreate(
     TaskBlink
     ,  (char *) "Blink"   // A name just for humans
     ,  128  // Stack size
     ,  NULL
-    ,  2  // priority
+    ,  3  // priority
     ,  NULL);
 
   xTaskCreate(
@@ -51,6 +43,14 @@ void setup() {
     ,  128  // Stack size
     ,  NULL
     ,  1  // priority
+    ,  NULL);
+    
+  xTaskCreate(
+    TaskControlSpeedMotor2
+    ,  (char *) "ControlSpeedMotor2"   // A name just for humans
+    ,  128  // Stack size
+    ,  NULL
+    ,  2  // priority
     ,  NULL);
   
 //  BaseType_t xReturned;
@@ -96,14 +96,46 @@ void TaskStepper2(void *pvParameters)
 {
   (void) pvParameters;
 
+  // Number of steps per output rotation
+  // Change this as per your motor's specification
+  const int stepsPerRevolutionMotor2 = 96;
+  
+  // connect motor to port #2 (M3 and M4)
+  AF_Stepper motor2(stepsPerRevolutionMotor2, 2);
+
+  // Stepper motor initialisation
+  motor2.setSpeed(speedMotor2);  // rpm
+  motor2.release(); // release all coils so that it can moove freely
+
   for (;;) // A Task shall never return or exit.
   {
-    // Controlling Stepper Motor
-    motor2.step(960, FORWARD, DOUBLE);
-    vTaskDelay( 4000 / portTICK_PERIOD_MS );
-    
+    motor2.setSpeed(speedMotor2);  // rpm
+    motor2.step(10, FORWARD, DOUBLE);
+
 //    motor2.step(96, BACKWARD, INTERLEAVE);
 //    vTaskDelay( 500 / portTICK_PERIOD_MS );
+  }
+}
+
+void TaskControlSpeedMotor2(void *pvParameters)
+{
+  (void) pvParameters;
+
+  int maxVal = 80;
+  int minVal = 1;
+
+  int iterator = 0;
+
+  for (;;) // A Task shall never return or exit.
+  {
+    for(iterator = minVal; iterator <= maxVal; iterator++){
+      speedMotor2 = iterator;
+      vTaskDelay( 100 / portTICK_PERIOD_MS );
+    }
+    for(iterator = maxVal; iterator >= minVal; iterator--){
+      speedMotor2 = iterator;
+      vTaskDelay( 100 / portTICK_PERIOD_MS );
+    }
   }
 }
 
