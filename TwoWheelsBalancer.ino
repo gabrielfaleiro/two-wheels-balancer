@@ -1,23 +1,70 @@
-#include <Arduino_FreeRTOS.h>
+////////////////////////////////////////////////////////////////////////
+// Includes
+////////////////////////////////////////////////////////////////////////
 
-// define two tasks for Blink & AnalogRead
+#include <Arduino_FreeRTOS.h>
+#include "AFMotor.h"
+
+////////////////////////////////////////////////////////////////////////
+// Global Variables
+////////////////////////////////////////////////////////////////////////
+
+// Number of steps per output rotation
+// Change this as per your motor's specification
+const int stepsPerRevolution = 96;
+
+// connect motor to port #2 (M3 and M4)
+AF_Stepper motor2(stepsPerRevolution, 2);
+
+////////////////////////////////////////////////////////////////////////
+// Tasks Prototypes
+////////////////////////////////////////////////////////////////////////
+
 void TaskBlink( void *pvParameters );
+void TaskStepper2(void *pvParameters);
+
+////////////////////////////////////////////////////////////////////////
+// Setup
+////////////////////////////////////////////////////////////////////////
 
 // the setup function runs once when you press reset or power the board
 void setup() {
-  BaseType_t xReturned;
-  TaskHandle_t xHandle = NULL;
+  // initialize serial communications at 9600 bps:
+  Serial.begin(9600);
+
+  // Stepper motor initialisation
+  motor2.setSpeed(40);  // rpm
+  //motor.onestep(FORWARD, SINGLE);
+  motor2.release(); // release all coils so that it can moove freely
   
-  // Now set up two tasks to run independently.
-  xReturned = xTaskCreate(
+  xTaskCreate(
     TaskBlink
     ,  (char *) "Blink"   // A name just for humans
     ,  128  // Stack size
     ,  NULL
     ,  2  // priority
-    ,  &xHandle );
+    ,  NULL);
 
-  // Now the task scheduler, which takes over control of scheduling individual tasks, is automatically started.
+  xTaskCreate(
+    TaskStepper2
+    ,  (char *) "Stepper2"   // A name just for humans
+    ,  128  // Stack size
+    ,  NULL
+    ,  1  // priority
+    ,  NULL);
+  
+//  BaseType_t xReturned;
+//  TaskHandle_t xHandle = NULL;
+//  
+//  // Now set up two tasks to run independently.
+//  xReturned = xTaskCreate(
+//    TaskBlink
+//    ,  (char *) "Blink"   // A name just for humans
+//    ,  128  // Stack size
+//    ,  NULL
+//    ,  2  // priority
+//    ,  &xHandle );
+
 }
 
 void loop()
@@ -25,9 +72,9 @@ void loop()
   // Empty. Things are done in Tasks.
 }
 
-/*--------------------------------------------------*/
-/*---------------------- Tasks ---------------------*/
-/*--------------------------------------------------*/
+////////////////////////////////////////////////////////////////////////
+// Tasks Definition
+////////////////////////////////////////////////////////////////////////
 
 void TaskBlink(void *pvParameters)  // This is a task.
 {
@@ -44,6 +91,25 @@ void TaskBlink(void *pvParameters)  // This is a task.
     vTaskDelay( 1000 / portTICK_PERIOD_MS ); // wait for one second
   }
 }
+
+void TaskStepper2(void *pvParameters)
+{
+  (void) pvParameters;
+
+  for (;;) // A Task shall never return or exit.
+  {
+    // Controlling Stepper Motor
+    motor2.step(960, FORWARD, DOUBLE);
+    vTaskDelay( 4000 / portTICK_PERIOD_MS );
+    
+//    motor2.step(96, BACKWARD, INTERLEAVE);
+//    vTaskDelay( 500 / portTICK_PERIOD_MS );
+  }
+}
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
 
 //#include <MotorDriver.h>
 //#include <Arduino.h>
@@ -130,7 +196,7 @@ void TaskBlink(void *pvParameters)  // This is a task.
 //  //motor.step(96, FORWARD, SINGLE);
 //  //motor.step(96, BACKWARD, SINGLE);
 //
-//  Serial.println("Double coil steps");
+//  Serial.println("Double coil steps"); // Double coils, greater torque
 //  //motor.step(96, FORWARD, DOUBLE);
 //  //motor.step(96, BACKWARD, DOUBLE);
 //
@@ -142,4 +208,3 @@ void TaskBlink(void *pvParameters)  // This is a task.
 //  //motor.step(96, FORWARD, MICROSTEP);
 //  //motor.step(96, BACKWARD, MICROSTEP);
 // * */
-// 
