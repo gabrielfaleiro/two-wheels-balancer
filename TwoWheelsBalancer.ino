@@ -9,15 +9,27 @@
 // Global Variables
 ////////////////////////////////////////////////////////////////////////
 
+// Number of steps per output rotation
+// Change this as per your motor's specification
+const uint16_t stepsPerRevolutionMotor1 = 96;
+const uint16_t stepsPerRevolutionMotor2 = 96;
+
+uint8_t stepsPerIteration = 1;
+uint8_t speedMotor1 = 80;
 uint8_t speedMotor2 = 80;
+uint8_t senseMotor1 = FORWARD;
+uint8_t senseMotor2 = FORWARD;
 
 ////////////////////////////////////////////////////////////////////////
 // Tasks Prototypes
 ////////////////////////////////////////////////////////////////////////
 
 void TaskBlink( void *pvParameters );
-void TaskStepper2(void *pvParameters);
 
+void TaskStepper1(void *pvParameters);
+void TaskControlSpeedMotor1(void *pvParameters);
+
+void TaskStepper2(void *pvParameters);
 void TaskControlSpeedMotor2(void *pvParameters);
 
 ////////////////////////////////////////////////////////////////////////
@@ -34,6 +46,22 @@ void setup() {
     ,  (char *) "Blink"   // A name just for humans
     ,  128  // Stack size
     ,  NULL
+    ,  5  // priority
+    ,  NULL);
+
+  xTaskCreate(
+    TaskStepper1
+    ,  (char *) "Stepper1"   // A name just for humans
+    ,  128  // Stack size
+    ,  NULL
+    ,  1  // priority
+    ,  NULL);
+    
+  xTaskCreate(
+    TaskControlSpeedMotor1
+    ,  (char *) "ControlSpeedMotor0"   // A name just for humans
+    ,  128  // Stack size
+    ,  NULL
     ,  3  // priority
     ,  NULL);
 
@@ -42,7 +70,7 @@ void setup() {
     ,  (char *) "Stepper2"   // A name just for humans
     ,  128  // Stack size
     ,  NULL
-    ,  1  // priority
+    ,  2  // priority
     ,  NULL);
     
   xTaskCreate(
@@ -50,7 +78,7 @@ void setup() {
     ,  (char *) "ControlSpeedMotor2"   // A name just for humans
     ,  128  // Stack size
     ,  NULL
-    ,  2  // priority
+    ,  4  // priority
     ,  NULL);
   
 //  BaseType_t xReturned;
@@ -92,13 +120,49 @@ void TaskBlink(void *pvParameters)  // This is a task.
   }
 }
 
-void TaskStepper2(void *pvParameters)
+void TaskStepper1(void *pvParameters)
+{
+  (void) pvParameters;
+  
+  // connect motor to port #1 (M1 and M2)
+  AF_Stepper motor1(stepsPerRevolutionMotor1, 1);
+
+  // Stepper motor initialisation
+  motor1.setSpeed(speedMotor1);  // rpm
+  motor1.release(); // release all coils so that it can moove freely
+
+  for (;;) // A Task shall never return or exit.
+  {
+    motor1.setSpeed(speedMotor1);  // rpm
+    motor1.step(stepsPerIteration, senseMotor1, DOUBLE);
+  }
+}
+
+void TaskControlSpeedMotor1(void *pvParameters)
 {
   (void) pvParameters;
 
-  // Number of steps per output rotation
-  // Change this as per your motor's specification
-  const int stepsPerRevolutionMotor2 = 96;
+  int maxVal = 80;
+  int minVal = 1;
+
+  int iterator = 0;
+
+  for (;;) // A Task shall never return or exit.
+  {
+    for(iterator = minVal; iterator <= maxVal; iterator++){
+      speedMotor2 = iterator;
+      vTaskDelay( 100 / portTICK_PERIOD_MS );
+    }
+    for(iterator = maxVal; iterator >= minVal; iterator--){
+      speedMotor2 = iterator;
+      vTaskDelay( 100 / portTICK_PERIOD_MS );
+    }
+  }
+}
+
+void TaskStepper2(void *pvParameters)
+{
+  (void) pvParameters;
   
   // connect motor to port #2 (M3 and M4)
   AF_Stepper motor2(stepsPerRevolutionMotor2, 2);
@@ -110,10 +174,7 @@ void TaskStepper2(void *pvParameters)
   for (;;) // A Task shall never return or exit.
   {
     motor2.setSpeed(speedMotor2);  // rpm
-    motor2.step(10, FORWARD, DOUBLE);
-
-//    motor2.step(96, BACKWARD, INTERLEAVE);
-//    vTaskDelay( 500 / portTICK_PERIOD_MS );
+    motor2.step(stepsPerIteration, senseMotor2, DOUBLE);
   }
 }
 
@@ -142,86 +203,6 @@ void TaskControlSpeedMotor2(void *pvParameters)
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
-
-//#include <MotorDriver.h>
-//#include <Arduino.h>
-//
-//#include "Arduino_FreeRTOS.h"
-//#include "AFMotor.h"
-//#include "Servo.h"
-//
-//// Number of steps per output rotation
-//// Change this as per your motor's specification
-//const int stepsPerRevolution = 96;
-//
-//// connect motor to port #2 (M3 and M4)
-//AF_Stepper motor(stepsPerRevolution, 2);
-//
-//// create servo object to control a servo
-//Servo myservo;
-//
-//void setup() {
-//  // initialize serial communications at 9600 bps:
-//  Serial.begin(9600);
-//
-//  // Stepper motor initialisation
-//  motor.setSpeed(40);  // rpm
-//  //motor.onestep(FORWARD, SINGLE);
-//  motor.release(); // release all coils so that it can moove freely
-//
-//  // Servo initialisation
-//  // PIN 9  -> SERVO_2
-//  // PIN 10 -> SER1
-//  // attaches the servo on pin to the servo object
-//  myservo.attach(10);
-//
-//  // TEST: digital servo, it might be that it is not provided with enough current
-//  // REF: https://www.amazon.com/LewanSoul-LD-20MG-Standard-Digital-Aluminium/dp/B073F92G2S
-//  // REF: https://forum.arduino.cc/index.php?topic=500585.0
-//  myservo.writeMicroseconds(1000);
-//
-//  delay(1000);
-//}
-//
-//void loop() {
-//
-//  int pos   = 544;
-//  int mPos  = 544;
-//  int MPos  = 2400;
-//  int incPos  = 1;
-//
-//  // Debugging
-//  //Serial.println("debug");
-//
-//  // Controlling Stepper Motor
-//  //////motor.step(96, FORWARD, INTERLEAVE);
-//  //motor.step(96, BACKWARD, INTERLEAVE);
-//
-//
-//  // Controlling Servo
-//  // sweeps from 0 degrees to 180 degrees
-//
-//  /*
-//  for(pos = mPos; pos <= MPos; pos += incPos)
-//  {
-//    myservo.writeMicroseconds(pos);
-//    delay(15);
-//  }
-//  // sweeps from 180 degrees to 0 degrees
-//  for(pos = MPos; pos >= mPos; pos -= incPos)
-//  {
-//    myservo.writeMicroseconds(pos);
-//    delay(15);
-//  }
-//
-//  pos = 1500;
-//  myservo.writeMicroseconds(pos);
-//  delay(1000);
-//  */
-//
-//  delay(2000);
-//}
-//
 ///*
 // * Stepper Motor Related Functions
 //  Serial.println("Single coil steps");
@@ -240,3 +221,4 @@ void TaskControlSpeedMotor2(void *pvParameters)
 //  //motor.step(96, FORWARD, MICROSTEP);
 //  //motor.step(96, BACKWARD, MICROSTEP);
 // * */
+////////////////////////////////////////////////////////////////////////
