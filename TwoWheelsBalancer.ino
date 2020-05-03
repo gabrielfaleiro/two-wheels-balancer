@@ -15,8 +15,8 @@ const uint16_t stepsPerRevolutionMotor1 = 96;
 const uint16_t stepsPerRevolutionMotor2 = 96;
 
 uint8_t stepsPerIteration = 1;
-uint8_t speedMotor1 = 80;
-uint8_t speedMotor2 = 80;
+uint16_t speedMotor1 = 80;
+uint16_t speedMotor2 = 80;
 uint8_t senseMotor1 = FORWARD;
 uint8_t senseMotor2 = FORWARD;
 
