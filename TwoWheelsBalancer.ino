@@ -11,12 +11,12 @@
 
 // Number of steps per output rotation
 // Change this as per your motor's specification
-const uint16_t stepsPerRevolutionMotor1 = 96;
-const uint16_t stepsPerRevolutionMotor2 = 96;
+const uint16_t stepsPerRevolutionMotor1 = 48; // 4SPM-24D6ZA 18DEC91MA
+const uint16_t stepsPerRevolutionMotor2 = 96; // 6Z281B
 
 uint8_t stepsPerIteration = 1;
-uint16_t speedMotor1 = 80;
-uint16_t speedMotor2 = 80;
+uint16_t speedMotor1 = 30;
+uint16_t speedMotor2 = 30;
 uint8_t senseMotor1 = FORWARD;
 uint8_t senseMotor2 = FORWARD;
 
@@ -221,4 +221,47 @@ void TaskControlSpeedMotor2(void *pvParameters)
 //  //motor.step(96, FORWARD, MICROSTEP);
 //  //motor.step(96, BACKWARD, MICROSTEP);
 // * */
+////////////////////////////////////////////////////////////////////////
+// Motor Information
+////////////////////////////////////////////////////////////////////////
+//- 4SPM-24D6ZA 18DEC91MA (Unipolar - 6 wires)
+//  - 7.5 DEG 12.5 Ohm
+//  - 48 steps per revolution
+//  - coil 1:
+//    - yellow: 12.6 ohms to red
+//    - red: middle coil
+//    - orange: 12.8 ohms to red
+//  - coil 2:
+//    - brown: 12.6 ohms to white
+//    - white: middle coil
+//    - black: 12.8 ohms to white
+//  - black: common (GND)
+//  - Arduino Motor Shield L293D connection
+//
+//  Spinning sense: left hand rule in shaft direction
+//  | X2 shield | wire  |
+//  | A1  | yellow      |
+//  | A2  | orange      |
+//  | GND | red + white |
+//  | B1  | brown       |
+//  | B2  | black       |
+
+//- 6Z281B (Unipolar - 5 wires)
+//  - 96 steps per revolution
+//  - coil 1:
+//    - brown: 4 (50.5 ohms to black)
+//    - orange: 2 (48.8 ohms to black)
+//  - coil 2:
+//    - red: 1 (50.5 ohms to black)
+//    - grey: 3 (50.5 ohms to black)
+//  - black: common (GND)
+//  - Arduino Motor Shield L293D connection
+//
+//  Spinning sense: left hand rule in shaft direction
+//  | X2 shield | wire |
+//  | A1  | red     |
+//  | A2  | grey    |
+//  | GND | black   |
+//  | B1  | orange  |
+//  | B2  | brown   |
 ////////////////////////////////////////////////////////////////////////
