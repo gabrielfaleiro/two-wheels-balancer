@@ -85,6 +85,41 @@ Note: changing one coil cable order changes the direction of the motor
   | B1  | brown       |
   | B2  | black       |
 
+## Gyro & Accelerometers
+
+- REF: https://www.mschoeffler.de/2017/10/05/tutorial-how-to-use-the-gy-521-module-mpu-6050-breakout-board-with-the-arduino-uno/
+- REF: https://create.arduino.cc/projecthub/Nicholas_N/how-to-use-the-accelerometer-gyroscope-gy-521-6dfc19
+- REF: http://wiki.epalsite.com/index.php?title=MPU6050_Gyro%26Accelerometer
+  - MPU-6050 Datasheet: http://wiki.epalsite.com/images/4/41/MPU6050_Datasheet.pdf
+  - MPU-6050 Memory Map: https://invensense.tdk.com/wp-content/uploads/2015/02/MPU-6000-Register-Map1.pdf
+
+Register 25 – Sample Rate Divider: SMPRT_DIV = 0 -> 1kHz or 1ms
+Register 27 – Gyroscope Configuration: GYRO_CONFIG. FS_SEL = 0 -> Full Scale Range = +-250º/s
+Register 28 – Accelerometer Configuration: ACCEL_CONFIG. AFS_SEL = 0 -> Full Scale Range = +-2g
+Registers 59 to 64 – Accelerometer Measurements
+Register (Hex) Register (Decimal) 
+3B 59 ACCEL_XOUT[15:8]
+3C 60 ACCEL_XOUT[7:0]
+3D 61 ACCEL_YOUT[15:8]
+3E 62 ACCEL_YOUT[7:0]
+3F 63 ACCEL_ZOUT[15:8]
+40 64 ACCEL_ZOUT[7:0]
+Registers 67 to 72 – Gyroscope Measurements
+Register (Hex) Register (Decimal) 
+43 67 GYRO_XOUT[15:8]
+44 68 GYRO_XOUT[7:0]
+45 69 GYRO_YOUT[15:8]
+46 70 GYRO_YOUT[7:0]
+47 71 GYRO_ZOUT[15:8]
+48 72 GYRO_ZOUT[7:0]
+Register 107 – Power Management 1: PWR_MGMT_1. TEMP_DIS = 1 by default.
+Bit 7: DEVICE_RESET. All registers are set to zero but 107 and 117.
+
+## Bluetooth
+
+- REF: http://www.martyncurrey.com/arduino-with-hc-05-bluetooth-module-at-mode/
+
+
 ## Arduino Motor Shield L293D
 
 REFERENCES:
